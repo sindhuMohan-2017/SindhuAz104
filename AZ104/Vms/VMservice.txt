@@ -1,0 +1,334 @@
+Virtual Machine
+---------------
+A Virtual Machine (VM) is a compute resource that uses software instead of a physical computer to run programs and deploy apps. 
+One or more virtual “guest” machines run on a physical “host” machine.  
+Each virtual machine runs its own operating system and functions separately from the other VMs, even when they are all running on the same host. 
+This means that, for example, a virtual MacOS virtual machine can run on a physical PC. 
+
+Hypervisor
+----------
+A hypervisor, also known as a virtual machine monitor or VMM, is software that creates and runs virtual machines (VMs). 
+A hypervisor allows one host computer to support multiple guest VMs by virtually sharing its resources, such as memory and processing. 
+
+Azure Virtual Machine
+---------------------
+This service allows you to create a VM on Azure
+You don't need to manage physical servers
+You can make use of on-demand pricing
+You only pay based on how much you use
+
+
+Creating a Basic Windows based azure VM
+========================================
+Create Resource --> VM --> Click on Create
+
+Basics Tab :
+  Subscription :: <<Azure subscription>>
+  Resource group :: << Az Resource group>>
+      Every Resource need to be part of a subscription and a Resource group. Resource group is used to logically group your resources.
+  
+Instance Details
+  VM Name :: <<Name of VM>>
+  Region :: << Region name>> --> need to select the region where the physical server are available & in which VM will be hosted.
+  Availability Options :: Default --> No infrastructure redundancy required
+  Security Type :: Standard (choose the default)
+  Image :: <<Image>> -->  Windows server 2022 Data centerv- x64 Gen2
+  Size :: Choose CPU and memory details
+Administartor account --> These details can be used to log into the machine
+  username
+  password
+  confirm passwords
+  
+  other feilds --> choose default
+  
+ Disks tab :
+  OS Disk 
+    OS Disk Type :: Premium SSD (locally redundant storage)
+    Delete with VM :: select this one(default)
+     All other fields -- mark them default value
+ 
+ Networking tab -->used for creating virtual networking details
+  Network Interface 
+    Virtual Network :: --> creates vnet
+    subnet ::  --> creates a subnet inside a vnet
+    Public IP :: -->This allows connectivity from internet  on to your Azure VM
+      All other fields -- mark them default value
+ 
+Management , Monitoring, Advanced and Tag --> all these tabs --> use the default settings
+Click on Review + create --> Azure VM will be created
+
+Connecting to the VM
+---------------------
+Select the <<VM>> which we created and in overview which has all the details (Os image,vnet,size and status(running))
+
+Below Resources are created along with the VM 
+ Vnet -->which is used for hosting the machine
+ VM resource itself
+ Public IP Address
+ Network Security Group
+ Network Interface
+ OS Disk 
+ Network Watcher
+
+Overview --> Connect --> RDP (RDP = Remote desktop protocal , connect via Public IP address and default port =3389) --> Download RDP File
+ we
+VM file gets downloaded. Click on it and connect using Username & password which we provided while creating VM
+
+Installing Iternet information service (IIS)
+---------------------------------------------
+IIS --> allows you to baiscally host web services on the machine itself ; listens for HTTP requests on port 8080
+
+Log on to VM
+ Server Manager --> Add roles and features --> select next ,next and choose IIS server & click install
+ 
+Azure portal --> <<VM>> --> Copy public IP address from Overview
+ if you paste this IP in browser, it is having some issues due to NSG. To resolve this ::
+  <<VM>> --> Left side Networking --> Inbound port Rules --> Add Inbound security Role
+    Service = http , All other fields -- mark them default value --> Click on Add
+
+Refresh the tab(Ip address) -->see the IIS home page
+    
+Costs associated with the VM
+------------------------------
+For a service,(VM) eventhough we are not using it,still incurs cost.so avoid to avoid those,we can either delete all the resources created as part of 
+service (VM) or the resource group of the service
+Otherwise we can create Budget alert to get notoifications about the cost of azure account.
+
+Azure subscription -->Budget(left) --> Add--> Create alert for the budget cost
+
+VM series/Types
+===============
+https://azure.microsoft.com/en-us/pricing/details/virtual-machines/series/
+
+
+Linux Based VM
+===============
+
+Same as windows based VM, but instead of windows server image, we can select ubantu server image
+
+VM connect --> use Putty tool (Username + password)
+IIS server -->  for linux based, we use nginx ; Public IP address in browser shows ngnix home page
+// This command is used to update the package index
+
+sudo apt-get update
+
+// This command will install the nginx web server
+
+sudo apt-get install nginx
+
+Azure VM - Linux based SSH
+--------------------------
+SSH is an encrypted connection protocol
+We can use SSH keys for more secure connection
+This is based on public-private key pairs
+The public key is stored on the VM itself.
+we get the private key which is then used to autehticate onto the Linux VM
+
+While creating VM -Linux based
+ Basic tab -> Administartor account --> Authentication Type = SSH Public key
+  username
+  SSH public key source = Generate new key pair
+  keypair name =<<providekeypairname>>
+  All others tabs & fields -> mark them default --> create VM
+  ** Download private Key and cretae VM resources ** --> .pem file downloaded on machine
+  
+  puttygen -->use this tool to extract the private key
+  Load --> selet .pem file --> save private key --> .ppk file save on machine
+  
+  putty --> IP = public IP address of VM
+  putty --> SSH(left) --> AUth --> private key(..pk) choose the file
+  
+  click on accept and login with user(While creating the vm) -->authenticate the user using the private key against the public key
+  
+  
+Azure VM Disks
+===============
+
+Azure VM --> OS Disk, Data Disk
+
+The Disks are managed by Azure, so they are known as Managed Disks (OS Disk, Data Disk)
+These Managed disks are designed to be highly available - 3 Replicas of your data are manitanied
+OS Disk - This has pre installed OS
+Data Disk - You can store your application data here
+Temporary Disk - This is not a managed disk. used for temporary stoarge of data.Here the data can be lost during a maintenance event or 
+when you redeploy the VM
+
+** There are different types of disks available based on the pricing tier
+ Ultra Disks
+ Premium SSD
+ Standard SSD
+ Standard HDD
+
+Solid state drives (SSDs) typically use flash-based memory to store data and thus have no moving parts. They have faster read/write speeds than HDDs, 
+lower access times (less latency), and a higher cost per gigabyte of storage.
+
+Hard disk drives (HDDs) use spinning magnetic media to store data, which is accessed by a read/write head on an actuator arm (much like a record player). 
+They have slower read/write speeds, higher access times, and a lower cost per gigabyte of storage compared to SSDs.
+
+
+** SSD are solid state Drives which are faster in nature.
+All the disks are varying in performance based on 2 factors - Throughput and IOPS(Input Output Operations)
+
+Difference between Throughput and IOPS
+---------------------------------------
+IOPS is a count of the read/write operations per second, but throughput is the actual measurement of read/write bits per second that are 
+transferred over a network.
+
+Premium SSD has more throughput and IOPS compared to Standard HDD, so cost of Premium SSD is also higher compared to standard HDD
+
+Azure vm --> OS disk + Data disk (premium SSD)
+App on Azure VM --> objective -->   Large videos, need higher throughput, be able to copy large data on the disks attached to VM
+
+
+Azure VM --> OS Disk + Data disk (Premium SSD)
+DB server hosted on VM --> read and write operations on DB --> needs IOPS
+
+
+Adding Data Disk
+----------------
+when we create a VM with default settings only OS Disk is attached to VM and this is volmuized and partitioned as C Drive
+
+To add additional Data disk to existing VM
+<<VM>> --> Disks(left side) --> Create new Data disk --> Select disk type --> all others defaults and click ok
+Data disk gets created and then got attached to VM
+
+VM logon -> we can't see new disk
+Server Manager -> Files and storgae --> new data disk(unknown ) status
+  Righ click and select Initialise
+  Right clikc and New volume --> Provide Drive/Disk Letter and click ok
+  Able to see it in the PC Drives
+  
+What happens when we stop the machine?
+--------------------------------------
+If you restart the VM, the data on the temporary disk remain as it is
+If you stop/ deallocate the VM, the data on the temporary disk also get erased. (Stop/deallocate the VM --> VM gets stopped ,release from physical server
+and started from again new physical server)
+
+
+Azure Key Valut service
+========================
+It is managed service used for storing/managing the encryption keys, certificates and secrets/passwords.
+DB --> Credentails --> Azure key vault --> as storage sercret keys
+
+Resources --> Create --> KeyVault
+Basics tab ::
+ Subscription :: <<sub>>
+ Resource group :: <<rg>>
+ 
+ Keyvault name :: <<unique name for vault>>
+ Region :: <<Az region>>
+ Pricing Tier :: Standard(default)
+ 
+ Days to retain deleted vault details = 7
+ 
+ All other fields--mark them default --> click on create--> Az keyvualt got created
+ 
+
+Azure Disks - Server side Encryption (SSE)
+===========================================
+VM --> Disks
+Disks are stored on storage units - Data center
+Data on Disk --> either application data, sensitive data etc are stored on Azure disk on storage unit and this data is stored on the Azure Data center.
+Before Data is stored on Azure data center, it can be encrypted at rest
+
+Server side Encryption :
+Here the data is automatically encrypted using 256-bit AES Encryption.
+This protects the data at rest.
+THis is done for managed disks - OS and Data disks.
+By default, the encryption is carried out with platform managed keys (PMK).
+But also you can also use your own customer managed keys, For this you need to make use of Disk encryption sets
+
+Disk Encryption sets
+--------------------
+<<Az Keyvault >> --> Objects(left side) --> Keys --> Generate/Import
+Options :: Generate
+Keyname :: <<Uniq keyname>>
+Key Type :: RSA, EC (choose default RSA)
+RSA Key Size :: 2048, 3072,4096 (choose default 2048)
+ all others -- default , Click on create, key got created.
+ 
+<<VM>> --> Disks(left side)
+OS disk --> already has encryption as (SSE with PMK)
+
+To change this encryption , we need to create Disk Encryption sets
+Resources --> Data Encryption sets --> Create
+
+Subscription :: <<sub>>
+Resource group :: <<rg>>
+Disk Encryption Name :: <<uniq name >>
+Region :: <<az region>>
+Encryption Type :: Encryption at rest -with customer managed keys
+Encryption Key :: select Azure key vault and key
+Key valut ::<kv>>
+Key :: <<key>>
+version :: <<current version>>
+all others -- default, click on create , resource got created
+
+TO change the encryption for disk, it can be done only when the disk is unattached or the managing VM are deallocated.
+NOTE :: Disk encyption (SSE with PMK) is changed to Customer Manged keys encryption , then there is no option to rollback/going back to SSE with PMK 
+        encryption method. 
+NOTE :: To associate a disk, image or a snapshot with this disk encryption set, we must grant permission to the app keyvault <<keyvault>>
+a). Stop the existing VM. --> it will deallocate the VM
+b).  choose <<data disk>> -->Encryption --> Key management = choose created Customer disk encryption set --> click on save
+
+Azure Disk Encyption
+---------------------
+Encryption --> SSE with PMK or CMK is at azure storage level --> at data centers
+We can also have encryption at the OS level (Windows=bitlocker , Linux) --> make use of Azure Disk Encryption
+
+Create VM - WIndows based 
+ same steps mention  Plus create a data disk as well
+ 
+<<appvm>> --> Disk --> Additional settings --> Encryption settings -->
+  Disks to encrypt :: choose OS DIsk and Data disk
+  Key valut ::<kv>>
+  Key :: <<key>>
+  version :: <<current version>>
+  all others -- default, click on save 
+
+
+Data Disk Snapshots
+--------------------
+If there is data disk/Volume in a VM and want to have the same copy of that in another VM, we can use the concept of Disk snapshot
+existing VM --> Disks -->Create Snapshot
+ Provide all the details + click on create
+ 
+Now create another VM and spun it up
+From the disk snapshot, create Disk --> Create a disk based on snapshot of disk
+<<2nd VM>> --> Disks --> Add Disk --> select newly created disk from the snapshot --> save
+if you log on to 2nd VM, initalise and New volume the Data disk, and now we can see the data of VM1 Data disk as well
+
+Azure Shared Disks
+--------------------
+This allows a managed disk to be attached to multiple VMs
+For example if we have below resources/services:
+VM1 , VM2 --> Clusterd workload storage(Sql server)
+if VM1 down, from VM2 we can access sql server storage.
+
+Enable Shared Disk --> option available in Data disk create tab--> Disks tab of VM --> while creating VM1
+Similary create VM2--> Disks tab --> Data disk --> Attach an existing Data disk --> Select data disk(shared) of VM1
+
+Log on to VM1 , VM2 and initialise, new volume Data disk in both VM's
+ 
+** To make both VM's to recognise those are sharing a Data disk, we need to install a software so that if there are changes in VM1 data disk, they will be 
+ reflecting in the VM2 data disk.
+
+Custom Scripts Extension
+-------------------------
+If you want to install an application or want to configure something or run some script when the VM is first launched.
+The scripts can be stored in Azure storage accounts or github account
+Ensure that the scripts don't require user inputs
+Don't put reboot inside of the script
+Maximum allowable time for the script to run is 90 minutes
+
+
+
+
+
+
+
+
+
+
+ 
+ 
