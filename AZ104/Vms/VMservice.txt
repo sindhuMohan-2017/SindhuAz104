@@ -319,7 +319,250 @@ If you want to install an application or want to configure something or run some
 The scripts can be stored in Azure storage accounts or github account
 Ensure that the scripts don't require user inputs
 Don't put reboot inside of the script
-Maximum allowable time for the script to run is 90 minutes
+Maximum allowable time for the script to run is 90 minutes.
+
+Lab ::
+
+Create Azure storage account with Defaults settings and create a conatiner, upload the IIS.ps1 file
+Create windows based VM
+  In Basics tab --> Also choose Http port(8080)
+  Advanced tab --> Extensions --> Select an Extension to install --> Custom scripts Extension
+    In that extension --> slect the script from storage account and file from there
+    
+  All other tabs and fields = default , Click on create VM 
+  VM spun up --> IIS server got installed(through custom script), test this in browser after placing the Public IP add in browser
+  
+Cloud Init  
+----------
+used to install packages on Linux based VMs
+For ex, we an insatll package scripts.yml from the cloudinit
+
+VM Linux
+ Advanced --> Custom data and cloud init -->paste the script.yml and click on create VM 
+ All other tabs & fields -- default
+ 
+Boot Diagnostics
+-----------------
+It is a debugging feature for Azure VMs that allows diagnosis of VM boot failures. Boot diagnostics enables a user to observe the state of their VM
+as it is booting up by collecting serial log info & screenshots
+-> Enabled by default when deployed a VM
+
+While creating VM, Under Monitoring Tab we have Diagnostics --> Boot Diagnostics :: Enable with managed storage account(recommended) default option.
+
+<<VM>> --> Help (left side) --> Boot Diagnostics
+
+Run command
+-----------
+Uses the VM agent to let you run a script inside the VM. 
+This can be helpful for troubleshooting & recovery and for general machine and application maintenance.
+useful to run commands on VM without log in to VM
+It Is there in the <<VM>> --> Help (left side) --> Run command
+ Use Power shell script-- IIS server script
+ 
+Azure Confidential Computing
+-----------------------------
+This is a feature that allows you to isolate sensitive data when it is being processed in the cloud.
+This feature is available for your virtual machines. In Confidential computing , a part of the CPU’s hardware is reserved for the portion of 
+code and data in your application. This portion is known as an enclave.
+There is a special series of virtual machines which support confidential computing. This is the DCsv2-Series
+https://docs.microsoft.com/en-us/azure/virtual-machines/dcv2-series
+
+These series of virtual machines are built on Intel SGX technology for hardware-based enclaves.
+To actually ensure that your code or application runs inside the enclave, you will have to program it accordingly.
+For this you need to use two open-source frameworks
+
+a) Open Enclave Software Development Kit
+  https://github.com/openenclave/openenclave
+b)Confidential Consortium Framework
+  https://github.com/Microsoft/CCF
+
+Azure Dedicated Hosts
+----------------------
+This service provides physical servers to host virtual machines. The physical server is dedicate to the Azure subscription.
+The benefits of Azure Dedicated Hosts is that no other virtual machines from any other customers would be placed on the physical server.
+You can also control the maintenance events that are initiated on the Azure platform.
+Here the users are charged per dedicated host. This is irrespective of the number of virtual machines running on the physical server
+For more information on Azure Dedicated Hosts , you can visit the URL - https://docs.microsoft.com/en-us/azure/virtual-machines/windows/dedicated-hosts
+
+Redeploying a VM
+-----------------
+VM created --> hosted on some Azure maintained physical server in Data center
+If VM is not booting up properly, it may be due to issue in the underlying physical server.
+stop the VM and start VM --> may be VM can be run in same or differnt physical server
+
+<<VM>> -->Help (left side) --> Redeploy + Reapply
+ Redeploy --> can't connect to VM --> choose this --> redeploys the VM in another physical server/new host in Azure data center; 
+              temp disk data will be lost
+ Reapply --> chose this when VM is in failed state. It will rerun VM provisioning to resolve the failed state issue
+ 
+Azure Bastion
+-------------
+is a fully managed Paas service.
+provides RDP/SSH connectivity to Azure VMs from the Azure portal via TLS(Transport Layer Security protocol)
+
+Why do we need it??
+Earlier, we deployed VMs based on either windows or Linux, each machine got alloacted with Public IP Add which is a separate resource created along with 
+VM. This allows connectivity to VM from internet.
+But sometimes, we don't need public IP Add due to some security reasons or if appln hosted on VM don;t need to be exposed over internet and available with in the n/w.
+But what happens if we want to install some other apps or configure something,without public IP Add then we can use custom scripts or Run command.
+But if an admin want to log on to VM and perform those actions, then we need Public IP Add
+
+Azure Bastion service - that provides connectivity onto your machines without the need o machines having public IP add.
+
+Create a VM without Public IP add(Networking --> Public Ip = None)
+Create another subnet(Bastion subnet) in VM and then click on Bastion service(left) and give VM cred
+from Browser you will be logged on to VM
+
+
+Availability sets
+=================
+Availability Sets - Review
+---------------------------
+When you host your virtual machines in Azure, you sometimes need to cater to the following
+
+An unplanned event wherein the underlying infrastructure fails unexpectedly. The failures could be attributed to network failures , local disk failures or even rack failures.
+
+Planned maintenance events , wherein Microsoft needs to make planned updates to the underlying physical environment. In such cases , a reboot might be required on your virtual machine.
+
+You can increase the availability of your application by making use of availability sets. Each virtual machine that is assigned to the availability set is assigned a separate fault and update domain.
+
+Fault domains are used to define the group of virtual machines that share a common source and network switch. You can have up to 3 fault domains.
+
+Update domains are used to group virtual machines and physical hardware that can be rebooted at the same time. You can have up to 20 update domains.
+
+
+The Availabilty set is a logical grouping of VMs. It helps to improve the entire availability of your application
+
+Let's say if an app hosted on VM and VM --> hosted on physical server in az data center
+What happens if there is a fault in the underlying physical server? or may be azure needs to apply an update on the physical server that requires
+the restart of a server?
+During these situations, it may cause interuptions onto Azure VM.
+If an critical app hosted on vm & wants the server available all the time as possible, then we can use this Availabily sets
+
+When you place your VM as part of an Availabilty set, it gets assigned a fault domain and Update domain
+Update Domain :: Azure will apply updates to the physical infrastructure one update domain at a time
+Fault Domain :: VMs in the fault domain share a common power source and a network switch
+
+Eg : Spinning up 4 VMs that are part of infrastructure hosting 1 common appln ; with the help of Availabilty sets we can have VM's configured as below
+ VM1 FD0 UD0
+ VM2 FD0 UD1
+ VM3 FD1 UD2
+ VM4 FD1 UD3
+
+So even if there are updates in UD or fault in FD, we will have high availability for our app hosted on these 4VMs
+
+Is there any extra cost for usgae of Availabilty sets for VM?
+No , you just need to pay for the underlying VMs
+
+Am I supposed to create multiple VMs? or does Availability sets feature creates duplicate copies of the VM?
+You have to create multiple VMs. The availabilty set is just a feature for managing availabilty of your machines
+
+Does Availability sets replicate data across VMs?
+No, you need to manage all of these aspects. Remember Availability sets is just a feature for managing availabilty of your machines
+
+** So to delete the availability set, you can first delete the virtual machines linked to the availability set and then go ahead and delete the availability set.
+** We can't assign specific fault or update domain to VM's as they are assigned as part of Availabilty set
+** We need to add VM to Availabilty set at the time of VM creation only , not after the VM got created
+
+Availabilty Zones
+==================
+This features help provides better availability for your application by protecting them from datacenter failures.
+Each Availability zone is a unique physical location in an Azure region.
+Each zone comprises of one or more data centers that has independent power, cooling, and networking
+Hence the physical separation of the Availability Zones helps protect applications against data center failures
+Using Availability Zones, you can be guaranteed an availability of 99.99% for your virtual machines. You need to ensure that you have 2 or more virtual machines running across multiple availability zones.
+
+In Availabilty sets, the machines might be located in a single data center. so what happens if the data center goes down?
+You can spread deployment of your multiple VMs across data centers by deploying them to Availability zones
+
+Is there any extra cost for usgae of Availabilty Zones for VM?
+No , you just need to pay for the underlying VMs
+
+Then why not make use of Availability Zones instead of Availabilty sets?
+This is beacuse there is a charge of data transfer per GB between the AVailabilty zones
+
+Does Availability Zones replicate data across VMs?
+No, you need to manage all of these aspects. 
+
+
+VM Scale set
+==============
+- helps to create set of identical VM's by using this feature
+
+1 app --> hosted on 1 VM
+No of users - for app - increases
+scale up instance size of VM so that it can have additional amout of CPU & RAM = Vertical scaling
+Horizontal scaling = multiple machines hosting the appln
+
+Automate approach for the horizonatl scaling --> VM scale set 
+
+VM scale set is a group of VMs. Here the no of VM instances can increase or decrease based on demand.
+
+Resources --> Create VM scale set
+Basics Tab :
+  Subscription :: <<Azure subscription>>
+  Resource group :: << Az Resource group>>
+  
+  Scale set details
+    VM scale set name :: <<uniq name>>
+    Region :: <<Az region>>
+    Availabilty Zone :: None   
+  Orchestration 
+    Orchestration Mode :: Uniform , Flexible (choose Uniform)
+    Security Type :: Standard
+  Instance Details
+    Image ::
+    
+    
+Scaling tab :
+ Initial Instance count = 1
+ scaling policy = Manual
+ 
+All other fields & tabs == default and click on create
+
+<<VM Scale set >> --> Scaling --> here create custom scaling rule
+
+https://learn.microsoft.com/en-us/azure/azure-monitor/autoscale/autoscale-best-practices
+
+Orchestartion mode = Uniform --> We cant' add another new VM manually to the scaleset
+Orchestration mode = Flexible --> we can add new VM here and chosse the existing VM sacle set while creating the VM
+
+Understanding VM Images
+========================
+Image -  This is a copy of the full VM which includes the data disks or just the OS Disk
+You can create an image and place as part of an Azure compute gallery
+You can then share the Azure Compute Gallery across your organization so that other users can create VMs based on the images stored in the gallery.
+
+Image definition :: This is grouping of different image versions because you can have different versions of your images.Each image definition has information as to why the image was created and other information that is pertinent on the image itself.
+
+
+Now there are two types of images that you can create something known as specialized images and another known as generalized beam images.
+
+In terms of specialized VM images, you are the information about specific users and machine information is retained.
+
+on your,Original machine, right, in which you first install your application and you have your data in place.You are creating an image based on this machine. That means there could be some user specific information already present on this machine because he first you log in with a user, an admin user, and then install your application.If you want all of that to be intact.Right, you can create something known as a specialized image.
+
+Here are the new VMs that are created out of that image will have the same company name and the admin user information.
+
+Generalized VM image :: Your information about these specific users and machine information is first removed from the primary
+machine before an image is made out of that primary machine.
+For this, you first have to perform the process of generalization.The original VM will be unusable, after you perform this process
+
+Create a VM + IIS server details installed using custom script while creating the VM
+<<VM>> --> Overview --> Capture
+Create an Image 
+ Subscription ::
+ Resource group ::
+ Region ::
+ Share Image to Azure compute gallery :: Yes, No (choose Yes)
+ Gallery details --> Here create a new gallery
+  all others - default -create image & save it in az compute gallery
+  
+  
+
+
+
+
 
 
 
