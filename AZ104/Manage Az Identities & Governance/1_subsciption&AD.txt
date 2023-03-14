@@ -1,0 +1,56 @@
+Azure Subscriptions
+====================
+When you first create your Azure account, you will get one Azure subscription and you get an Azure Active directory(AD).
+
+The Azure subscription is used for billing purposes.
+
+During the first 30 days of your Azure account, you get $200 worth of free credit.Any services, resources that you use where in you actually incur a 
+cost, those costs will go against the $200 of free credit.
+
+And then after that, you can convert your subscription onto something known as a " pay as you go "subscription. With this subscription, 
+you just pay based on how much you use.
+
+When you create a resource, you always need to choose an Azure subscription because it these subscription is used for billing purposes.
+
+We can have multiple subscriptions and at any point of time, you can go ahead and cancel your subscription or you can add new subscriptions.
+
+Azure Active Directory
+======================
+This is your identity provider on the Azure platform.
+
+You can manage your users, your groups, your devices, etc, there are a lot of features when it comes onto working with Azure AD.
+
+For any company, they want to have an identity provider security mechanisms in place.They won't define users in an identity provider that maps 
+onto employees in their company and give them permissions accordingly. All of this can be done via the use of Azure Active Directory.
+
+The steps that Azure AD provides you when you first log into Azure portal::
+a) Authentication --> You're the identity provider actually verifies whether you are who you say you are.
+b) Authorization  --> This is the granting of permissions to access a particular resource.
+  You might have different resources defined under resource groups that are part of your Azure subscription.
+  You can give permissions to your users applications, etc..
+  
+  
+When it comes on to the license, you might be having Azure AD free licences or Azure AD Premium P1 or Azure AD Premium P2  based licenses. 
+When it comes onto free licenses, you get the basic aspects of defining users, defining user groups,application objects, etc.. But as you start 
+purchasing the premium based licenses, you get additional security features.
+
+Trust Relationship between Azure AD and subscription
+====================================================
+Azure subscription, which is used for billing purposes.When you define your resources, they come under a resource group and it comes 
+under a subscription.
+
+And then we talked about Azure AD as your identity provider, you define your users, your groups, your applications, and then you
+give access to, let's say, your users onto resources that are part of a subscription.
+
+And with Azure AD, you get a directory in which you define your users, groups, etc..
+
+Now there is a trust relationship in place between Azure AD and the Azure subscription.
+
+Azure AD Default Directory --> Azure subscription1 --> resources
+"        secondart  "      --> " Testing Sub. --> Resources 
+
+** Please note that each subscription can only trust a single Azure Active directory at a time, but multiple subscriptions can cross the 
+same Azure Active directory. 
+
+
+
